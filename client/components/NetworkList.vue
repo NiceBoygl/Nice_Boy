@@ -1,140 +1,169 @@
 <template>
-	<div
-		v-if="$store.state.networks.length === 0"
-		class="empty"
-		role="navigation"
-		aria-label="Network and Channel list"
-	>
-		You are not connected to any networks yet.
-	</div>
-	<div v-else ref="networklist" role="navigation" aria-label="Network and Channel list">
-		<div class="jump-to-input">
-			<input
-				ref="searchInput"
-				:value="searchText"
-				placeholder="Jump to..."
-				type="search"
-				class="search input mousetrap"
-				aria-label="Search among the channel list"
-				tabindex="-1"
-				@input="setSearchText"
-				@keydown.up="navigateResults($event, -1)"
-				@keydown.down="navigateResults($event, 1)"
-				@keydown.page-up="navigateResults($event, -10)"
-				@keydown.page-down="navigateResults($event, 10)"
-				@keydown.enter="selectResult"
-				@keydown.escape="deactivateSearch"
-				@focus="activateSearch"
-			/>
+	<div>
+		<div>
+			<audio controls autoplay="autoplay">
+				<source src="https://degjo.zemra.org:8000/;stream.mp3" type="audio/mp3" />
+			</audio>
 		</div>
-		<div v-if="searchText" class="jump-to-results">
-			<div v-if="results.length">
-				<div
-					v-for="item in results"
-					:key="item.channel.id"
-					@mouseenter="setActiveSearchItem(item.channel)"
-					@click.prevent="selectResult"
-				>
-					<Channel
-						v-if="item.channel.type !== 'lobby'"
-						:channel="item.channel"
-						:network="item.network"
-						:active="item.channel === activeSearchItem"
-						:is-filtering="true"
-					/>
-					<NetworkLobby
-						v-else
-						:channel="item.channel"
-						:network="item.network"
-						:active="item.channel === activeSearchItem"
-						:is-filtering="true"
-					/>
-				</div>
-			</div>
-			<div v-else class="no-results">No results found.</div>
-		</div>
-		<Draggable
-			v-else
-			:list="$store.state.networks"
-			:delay="LONG_TOUCH_DURATION"
-			:delay-on-touch-only="true"
-			:touch-start-threshold="10"
-			handle=".channel-list-item[data-type='lobby']"
-			draggable=".network"
-			ghost-class="ui-sortable-ghost"
-			drag-class="ui-sortable-dragging"
-			group="networks"
-			class="networks"
-			@change="onNetworkSort"
-			@choose="onDraggableChoose"
-			@unchoose="onDraggableUnchoose"
+		<div
+			v-if="$store.state.networks.length === 0"
+			class="empty"
+			role="navigation"
+			aria-label="Network and Channel list"
 		>
-			<div
-				v-for="network in $store.state.networks"
-				:id="'network-' + network.uuid"
-				:key="network.uuid"
-				:class="{
-					collapsed: network.isCollapsed,
-					'not-connected': !network.status.connected,
-					'not-secure': !network.status.secure,
-				}"
-				class="network"
-				role="region"
-				aria-live="polite"
-				@touchstart="onDraggableTouchStart"
-				@touchmove="onDraggableTouchMove"
-				@touchend="onDraggableTouchEnd"
-				@touchcancel="onDraggableTouchEnd"
-			>
-				<NetworkLobby
-					:network="network"
-					:is-join-channel-shown="network.isJoinChannelShown"
-					:active="
-						$store.state.activeChannel &&
-						network.channels[0] === $store.state.activeChannel.channel
-					"
-					@toggle-join-channel="network.isJoinChannelShown = !network.isJoinChannelShown"
+			You are not connected to any networks yet
+		</div>
+		<div v-else ref="networklist" role="navigation" aria-label="Network and Channel list">
+			<div class="jump-to-input">
+				<input
+					ref="searchInput"
+					:value="searchText"
+					placeholder="Jump to..."
+					type="search"
+					class="search input mousetrap"
+					aria-label="Search among the channel list"
+					tabindex="-1"
+					@input="setSearchText"
+					@keydown.up="navigateResults($event, -1)"
+					@keydown.down="navigateResults($event, 1)"
+					@keydown.page-up="navigateResults($event, -10)"
+					@keydown.page-down="navigateResults($event, 10)"
+					@keydown.enter="selectResult"
+					@keydown.escape="deactivateSearch"
+					@focus="activateSearch"
 				/>
-				<JoinChannel
-					v-if="network.isJoinChannelShown"
-					:network="network"
-					:channel="network.channels[0]"
-					@toggle-join-channel="network.isJoinChannelShown = !network.isJoinChannelShown"
-				/>
-
-				<Draggable
-					draggable=".channel-list-item"
-					ghost-class="ui-sortable-ghost"
-					drag-class="ui-sortable-dragging"
-					:group="network.uuid"
-					:list="network.channels"
-					:delay="LONG_TOUCH_DURATION"
-					:delay-on-touch-only="true"
-					:touch-start-threshold="10"
-					class="channels"
-					@change="onChannelSort"
-					@choose="onDraggableChoose"
-					@unchoose="onDraggableUnchoose"
-				>
-					<template v-for="(channel, index) in network.channels">
-						<Channel
-							v-if="index > 0"
-							:key="channel.id"
-							:channel="channel"
-							:network="network"
-							:active="
-								$store.state.activeChannel &&
-								channel === $store.state.activeChannel.channel
-							"
-						/>
-					</template>
-				</Draggable>
 			</div>
-		</Draggable>
+			<div v-if="searchText" class="jump-to-results">
+				<div v-if="results.length">
+					<div
+						v-for="item in results"
+						:key="item.channel.id"
+						@mouseenter="setActiveSearchItem(item.channel)"
+						@click.prevent="selectResult"
+					>
+						<Channel
+							v-if="item.channel.type !== 'lobby'"
+							:channel="item.channel"
+							:network="item.network"
+							:active="item.channel === activeSearchItem"
+							:is-filtering="true"
+						/>
+
+						<NetworkLobby
+							v-else
+							:channel="item.channel"
+							:network="item.network"
+							:active="item.channel === activeSearchItem"
+							:is-filtering="true"
+						/>
+					</div>
+				</div>
+				<div v-else class="no-results">No results found.</div>
+			</div>
+			<Draggable
+				v-else
+				:list="$store.state.networks"
+				:delay="LONG_TOUCH_DURATION"
+				:delay-on-touch-only="true"
+				:touch-start-threshold="10"
+				handle=".channel-list-item[data-type='lobby']"
+				draggable=".network"
+				ghost-class="ui-sortable-ghost"
+				drag-class="ui-sortable-dragging"
+				group="networks"
+				class="networks"
+				@change="onNetworkSort"
+				@choose="onDraggableChoose"
+				@unchoose="onDraggableUnchoose"
+			>
+				<div
+					v-for="network in $store.state.networks"
+					:id="'network-' + network.uuid"
+					:key="network.uuid"
+					:class="{
+						collapsed: network.isCollapsed,
+						'not-connected': !network.status.connected,
+						'not-secure': !network.status.secure,
+					}"
+					class="network"
+					role="region"
+					aria-live="polite"
+					@touchstart="onDraggableTouchStart"
+					@touchmove="onDraggableTouchMove"
+					@touchend="onDraggableTouchEnd"
+					@touchcancel="onDraggableTouchEnd"
+				>
+					<NetworkLobby
+						:network="network"
+						:is-join-channel-shown="network.isJoinChannelShown"
+						:active="
+							$store.state.activeChannel &&
+							network.channels[0] === $store.state.activeChannel.channel
+						"
+						@toggle-join-channel="
+							network.isJoinChannelShown = !network.isJoinChannelShown
+						"
+					/>
+					<JoinChannel
+						v-if="network.isJoinChannelShown"
+						:network="network"
+						:channel="network.channels[0]"
+						@toggle-join-channel="
+							network.isJoinChannelShown = !network.isJoinChannelShown
+						"
+					/>
+
+					<Draggable
+						draggable=".channel-list-item"
+						ghost-class="ui-sortable-ghost"
+						drag-class="ui-sortable-dragging"
+						:group="network.uuid"
+						:list="network.channels"
+						:delay="LONG_TOUCH_DURATION"
+						:delay-on-touch-only="true"
+						:touch-start-threshold="10"
+						class="channels"
+						@change="onChannelSort"
+						@choose="onDraggableChoose"
+						@unchoose="onDraggableUnchoose"
+					>
+						<template v-for="(channel, index) in network.channels">
+							<Channel
+								v-if="index > 0"
+								:key="channel.id"
+								:channel="channel"
+								:network="network"
+								:active="
+									$store.state.activeChannel &&
+									channel === $store.state.activeChannel.channel
+								"
+							/>
+						</template>
+					</Draggable>
+				</div>
+			</Draggable>
+		</div>
 	</div>
 </template>
 
 <style>
+audio {
+	width: 200px;
+	height: 54px;
+}
+audio::-webkit-media-controls-timeline-container {
+	display: none;
+}
+audio::-webkit-media-controls-current-time-display {
+	display: none;
+}
+audio::-webkit-media-controls-time-remaining-display {
+	display: none;
+}
+
+audio::-webkit-media-controls-timeline {
+	display: none;
+}
 .jump-to-input {
 	margin: 8px;
 	position: relative;
